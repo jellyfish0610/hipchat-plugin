@@ -97,11 +97,11 @@ public class ActiveNotifier implements FineGrainedNotifier {
             authors.add(entry.getAuthor().getDisplayName());
         }
         MessageBuilder message = new MessageBuilder(notifier, r);
-        message.append("Started by changes from ");
+        message.append("with changes from ");
         message.append(StringUtils.join(authors, ", "));
         message.append(" (");
         message.append(files.size());
-        message.append(" file(s) changed)");
+        message.append(" file(s))");
         return message.appendOpenLink().toString();
     }
 
@@ -119,7 +119,10 @@ public class ActiveNotifier implements FineGrainedNotifier {
     String getBuildStatusMessage(AbstractBuild r) {
         MessageBuilder message = new MessageBuilder(notifier, r);
         message.appendStatusMessage();
-        message.appendDuration();
+        if (getChanges(r) != null) {
+            message.append(" ");
+            message.append(getChanges(r));            
+        }
         return message.appendOpenLink().toString();
     }
 
@@ -132,6 +135,11 @@ public class ActiveNotifier implements FineGrainedNotifier {
             this.notifier = notifier;
             this.message = new StringBuffer();
             this.build = build;
+            CauseAction cause = build.getAction(CauseAction.class);
+            if (cause != null) {
+                message.append(cause.getShortDescription());
+                message.append(": ");
+            }
             startMessage();
         }
 
@@ -145,11 +153,11 @@ public class ActiveNotifier implements FineGrainedNotifier {
                 return "Starting...";
             }
             Result result = r.getResult();
-            if (result == Result.SUCCESS) return "Success";
+            if (result == Result.SUCCESS) return "SUCCESS";
             if (result == Result.FAILURE) return "<b>FAILURE</b>";
             if (result == Result.ABORTED) return "ABORTED";
-            if (result == Result.NOT_BUILT) return "Not built";
-            if (result == Result.UNSTABLE) return "Unstable";
+            if (result == Result.NOT_BUILT) return "NOT BUILTD";
+            if (result == Result.UNSTABLE) return "UNSTABLE";
             return "Unknown";
         }
 
